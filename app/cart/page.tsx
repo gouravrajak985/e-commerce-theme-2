@@ -42,7 +42,7 @@ export default function CartPage() {
 
   return (
     <div className="container max-w-6xl mx-auto px-4 py-20" ref={cartRef}>
-      <h1 className="text-4xl font-light mb-12">Your Cart ({totalItems} {totalItems === 1 ? 'item' : 'items'})</h1>
+      <h1 className="text-4xl font-light mb-12 mt-12">Your Cart ({totalItems} {totalItems === 1 ? 'item' : 'items'})</h1>
       
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-8">
@@ -95,7 +95,7 @@ export default function CartPage() {
           </div>
         </div>
         
-        <div className="lg:col-span-4">
+        <div className="lg:col-span-4 mt-10">
           <div className="bg-white p-6 rounded-lg shadow-sm border sticky top-24">
             <h2 className="text-xl font-medium mb-6">Order Summary</h2>
             <div className="space-y-4 mb-6">
