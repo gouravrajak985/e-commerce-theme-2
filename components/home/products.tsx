@@ -117,7 +117,7 @@ export function Products({ products }: ProductsProps) {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
                   </Button>
-                  <Link href={`/product/${product.id}`}>
+                  <Link href={`/products/${product.id}`}>
                     <Button 
                       variant="secondary" 
                       size="icon" 

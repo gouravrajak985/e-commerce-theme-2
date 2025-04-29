@@ -56,6 +56,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
     toast.success(`${product.name} added to cart`);
   };
 
+  console.log(products);
   return (
     <div ref={containerRef} className="container mx-auto px-4">
       <div className="flex justify-between items-center mb-12">
@@ -88,7 +89,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
                   </Button>
-                  <Link href={`/product/${product.id}`}>
+                  <Link href={`/products/${product.id}`}>
                     <Button 
                       variant="secondary" 
                       size="icon" 
