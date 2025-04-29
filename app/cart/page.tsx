@@ -19,8 +19,8 @@ export default function CartPage() {
       
       gsap.from(elements, {
         y: 50,
-        opacity: 0,
-        stagger: 0.1,
+        opacity: 1,
+        stagger: 0.6,
         duration: 0.8,
         ease: "power3.out",
       });
