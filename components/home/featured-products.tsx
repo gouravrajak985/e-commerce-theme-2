@@ -56,7 +56,6 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
     toast.success(`${product.name} added to cart`);
   };
 
-  console.log(products);
   return (
     <div ref={containerRef} className="container mx-auto px-4">
       <div className="flex justify-between items-center mb-12">
@@ -72,7 +71,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
           <div key={product.id} className="featured-card group">
             <div className="relative aspect-[3/4] overflow-hidden mb-4">
               <Image
-                src={product.images[0]}
+                src={product.images[0]?.url}
                 alt={product.name}
                 fill
                 className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
@@ -103,8 +102,8 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
             </div>
             <div className="space-y-1">
               <h3 className="font-medium">{product.name}</h3>
-              <p className="text-sm text-muted-foreground">{product.category}</p>
-              <p className="font-light">${product.price.toFixed(2)}</p>
+              <p className="text-sm text-muted-foreground">{product.category?.name}</p>
+              <p className="font-light">${product.price}</p>
             </div>
           </div>
         ))}
