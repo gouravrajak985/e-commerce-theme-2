@@ -16,6 +16,7 @@ export interface Store {
     size: Size;
     color: Color;
     images: Image[];
+    description: string;
   }
   
   export interface Image {
