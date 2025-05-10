@@ -6,9 +6,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { gsap } from "@/lib/gsap";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/providers/cart-provider";
 import { toast } from "sonner";
 import { ArrowRight, Eye } from "lucide-react";
+import { createCartStore } from "@/hooks/use-cart";
 
 interface FeaturedProductsProps {
   products: Product[];
@@ -16,7 +16,8 @@ interface FeaturedProductsProps {
 
 export function FeaturedProducts({ products }: FeaturedProductsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { addItem } = useCart();
+  const username = process.env.STORE_USERNAME || 'default';
+  const cartStore = createCartStore(username);
 
   useEffect(() => {
     if (containerRef.current) {
@@ -52,8 +53,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
   }, []);
 
   const handleAddToCart = (product: Product) => {
-    addItem(product);
-    toast.success(`${product.name} added to cart`);
+    cartStore.getState().addItem(product);
   };
 
   return (

@@ -16,16 +16,21 @@ import { Input } from "@/components/ui/input";
 import { useCart } from "@/providers/cart-provider";
 import { gsap } from "@/lib/gsap";
 import { PRODUCT_CATEGORIES } from "@/lib/constants";
+import { Product } from '@/types';
+import { getSessionData } from "@/lib/utils";
+import createCartStore from "@/hooks/use-cart";
 
 export function Navbar() {
-  const { totalItems } = useCart();
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const tl = useRef<gsap.core.Timeline | null>(null);
-
+  const [cartItems, setCartItems] = useState<Product[]>([]);
+  const username = process.env.STORE_USERNAME || 'default';
+  const useCart = createCartStore(username);
+  // useeffect for scroll
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 50) {
@@ -38,13 +43,13 @@ export function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
+  // useffect for search input
   useEffect(() => {
     if (searchOpen && searchInputRef.current) {
       searchInputRef.current.focus();
     }
   }, [searchOpen]);
-
+  // useeffect for menu animation
   useEffect(() => {
     if (menuOpen && menuRef.current) {
       // Initialize the timeline
@@ -76,14 +81,23 @@ export function Navbar() {
       tl.current.reverse();
     }
   }, [menuOpen]);
+// useeffect for cart
+  useEffect(() => {
+    const unsubscribe: () => void = useCart.subscribe((state: { items: Product[] }) => {
+      setCartItems(state.items);
+    });
+
+    setCartItems(useCart.getState().items);
+
+    return () => unsubscribe();
+  }, [useCart]);
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${
-        isScrolled || searchOpen || menuOpen
+      className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${isScrolled || searchOpen || menuOpen
           ? "bg-white border-b"
           : "bg-transparent"
-      }`}
+        }`}
     >
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">
         {/* Logo */}
@@ -114,9 +128,9 @@ export function Navbar() {
 
           <Link href="/cart" className="interactive relative">
             <ShoppingBag className="h-5 w-5" />
-            {totalItems > 0 && (
+            {cartItems.length > 0 && (
               <span className="absolute -top-2 -right-2 h-4 w-4 rounded-full bg-black text-white text-[10px] flex items-center justify-center">
-                {totalItems}
+                {cartItems.length}
               </span>
             )}
           </Link>
@@ -132,9 +146,8 @@ export function Navbar() {
 
       {/* Search Bar */}
       <div
-        className={`border-t overflow-hidden transition-all duration-500 ease-in-out ${
-          searchOpen ? "h-20" : "h-0"
-        }`}
+        className={`border-t overflow-hidden transition-all duration-500 ease-in-out ${searchOpen ? "h-20" : "h-0"
+          }`}
       >
         <div className="container mx-auto px-4 h-full flex items-center">
           <Search className="h-5 w-5 mr-2 text-muted-foreground" />
@@ -149,9 +162,8 @@ export function Navbar() {
       {/* Full screen menu - Mobile */}
       <div
         ref={menuRef}
-        className={`fixed inset-0 bg-white z-40 ${
-          menuOpen ? "block" : "hidden"
-        } opacity-0`}
+        className={`fixed inset-0 bg-white z-40 ${menuOpen ? "block" : "hidden"
+          } opacity-0`}
         style={{ top: "80px" }}
       >
         <div className="container mx-auto px-4 py-10">

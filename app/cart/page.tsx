@@ -1,33 +1,57 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/providers/cart-provider";
+import { Product } from "@/types";
+import { createCartStore } from "@/hooks/use-cart";
 import { ShoppingCart, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/gsap";
 import { CheckoutDialog } from "@/components/checkout/checkout-dialog";
+import { getSessionData } from '@/lib/utils';
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, subtotal, totalItems } = useCart();
+  const [isMounted, setIsMounted] = useState(false);
   const cartRef = useRef<HTMLDivElement>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-
+  const [cartItems, setCartItems] = useState<Product[]>([]);
+  const [store, setStore] = useState(() =>
+    typeof window !== 'undefined' ? getSessionData() : {}
+  );
+  console.log('store', store.username);
+ const useCart = createCartStore(store.username || 'default');
+  
+  
   useEffect(() => {
-    if (cartRef.current) {
-      const elements = cartRef.current.querySelectorAll('.cart-item');
-      
-      gsap.from(elements, {
-        y: 50,
-        opacity: 1,
-        stagger: 0.6,
-        duration: 0.8,
-        ease: "power3.out",
-      });
-    }
-  }, [items.length]);
+    setIsMounted(true);
+  }, []);
+ 
+  useEffect(() => {
+    const unsubscribe: () => void = useCart.subscribe((state: { items: Product[] }) => {
+      setCartItems(state.items);
+    });
 
-  if (items.length === 0) {
+    setCartItems(useCart.getState().items);
+
+    return () => unsubscribe();
+  }, [useCart]);
+
+  if (!isMounted) {
+    return null;
+  }
+  interface RemoveItemFunction {
+    (productId: string): void;
+  }
+
+  const onRemove: RemoveItemFunction = (productId) => {
+    useCart.getState().removeItem(productId);
+  };
+
+const subtotal = cartItems.reduce((total, item) => {
+  return total + Number(item.price);
+}, 0);
+
+  if (cartItems.length === 0) {
     return (
       <div className="container max-w-6xl mx-auto px-4 py-20 min-h-[60vh] flex flex-col items-center justify-center">
         <ShoppingCart className="w-24 h-24 text-muted-foreground mb-6" />
@@ -42,46 +66,32 @@ export default function CartPage() {
 
   return (
     <div className="container max-w-6xl mx-auto px-4 py-20" ref={cartRef}>
-      <h1 className="text-4xl font-light mb-12 mt-12">Your Cart ({totalItems} {totalItems === 1 ? 'item' : 'items'})</h1>
+      <h1 className="text-4xl font-light mb-12 mt-12">Your Cart</h1>
       
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-8">
           <div className="space-y-8">
-            {items.map((item) => (
-              <div key={item.product.id} className="cart-item bg-white rounded-lg shadow-sm border p-6">
+            {cartItems.map((item) => (
+              <div key={item.id} className="cart-item bg-white rounded-lg shadow-sm border p-6">
                 <div className="flex flex-col sm:flex-row gap-6">
                   <div className="relative w-full sm:w-48 h-64 sm:h-48 rounded-md overflow-hidden">
                     <Image
-                      src={item.product.images[0]}
-                      alt={item.product.name}
+                      src={item.images[0]?.url}
+                      alt={item.name}
                       fill
                       className="object-cover"
                     />
                   </div>
                   <div className="flex flex-1 flex-col justify-between">
                     <div>
-                      <h3 className="text-xl font-medium mb-2">{item.product.name}</h3>
-                      <p className="text-muted-foreground capitalize mb-2">{item.product.category}</p>
-                      <p className="text-2xl font-light">${item.product.price.toFixed(2)}</p>
+                      <h3 className="text-xl font-medium mb-2">{item.name}</h3>
+                      <p className="text-muted-foreground capitalize mb-2">{item.category.name}</p>
+                      <p className="text-2xl font-light">${Number(item.price).toFixed(2)}</p>
                     </div>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-6">
-                      <div className="flex items-center bg-muted rounded-lg overflow-hidden">
-                        <button 
-                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                          className="w-10 h-10 flex items-center justify-center text-sm hover:bg-secondary transition duration-200 ease-out interactive"
-                        >
-                          -
-                        </button>
-                        <span className="w-14 text-center font-medium">{item.quantity}</span>
-                        <button 
-                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                          className="w-10 h-10 flex items-center justify-center text-sm hover:bg-secondary transition duration-200 ease-out interactive"
-                        >
-                          +
-                        </button>
-                      </div>
+                      
                       <button 
-                        onClick={() => removeItem(item.product.id)}
+                        onClick={() => onRemove(item.id)}
                         className="text-muted-foreground hover:text-destructive flex items-center text-sm mt-4 sm:mt-0 transition duration-200 interactive"
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
@@ -118,6 +128,7 @@ export default function CartPage() {
               className="w-full" 
               size="lg"
               onClick={() => setCheckoutOpen(true)}
+              disabled={cartItems.length === 0}
             >
               Proceed to Checkout
             </Button>
